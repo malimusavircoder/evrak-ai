@@ -154,7 +154,7 @@
             font: inherit;
         }
         input[type="file"] {
-            background: white;
+            display: none;
         }
         button {
             cursor: pointer;
@@ -170,6 +170,45 @@
             box-shadow: none;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
+        .picker-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .picker {
+            border: 1px solid var(--line);
+            background: white;
+            border-radius: 18px;
+            padding: 16px;
+            cursor: pointer;
+            text-align: left;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+        .picker:hover {
+            transform: translateY(-1px);
+            border-color: #b7cfc9;
+        }
+        .picker strong {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--ink);
+        }
+        .picker span {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .file-chip {
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: #f4f1ea;
+            color: var(--muted);
+            border: 1px dashed var(--line);
+            font-size: 14px;
+        }
         .tiny {
             margin-top: 10px;
             color: var(--muted);
@@ -177,19 +216,11 @@
             line-height: 1.5;
         }
         @media (max-width: 860px) {
-            .hero {
-                grid-template-columns: 1fr;
-            }
-            .shell {
-                padding: 14px 14px 28px;
-            }
-            .card {
-                padding: 18px;
-                border-radius: 20px;
-            }
-            h1 {
-                line-height: 1.02;
-            }
+            .hero { grid-template-columns: 1fr; }
+            .shell { padding: 14px 14px 28px; }
+            .card { padding: 18px; border-radius: 20px; }
+            .picker-grid { grid-template-columns: 1fr; }
+            h1 { line-height: 1.02; }
         }
     </style>
 </head>
@@ -217,18 +248,34 @@
         <div class="hero">
             <section class="card">
                 <p class="eyebrow">Hizli Akis</p>
-                <h1>Fisi cek, AI alanlari cikarsin, kayda donsun.</h1>
-                <p class="lead">Telefon kamerasi ya da PDF ile belgeyi yukle. Evrak AI belge turu, tutar, firma ve vergi bilgisini cikarip kayit icin onune getirir.</p>
+                <h1>Kamera ile cek ya da galeriden ve dosyalardan yukle.</h1>
+                <p class="lead">Telefon kullaniminda iki ayri secenek sunuyoruz: belgeyi aninda kamerayla cekebilir ya da galeriden, dosyalardan PDF ve resim secerek yukleme yapabilirsin.</p>
 
                 <form action="/upload" method="post" enctype="multipart/form-data">
                     <div>
                         <label for="musteri">Musteri</label>
                         <input id="musteri" type="text" name="musteri" placeholder="Orn: Ayse Ltd" required>
                     </div>
+
                     <div>
-                        <label for="file">Dosya</label>
-                        <input id="file" type="file" name="file" accept="image/*,.pdf" capture="environment" required>
+                        <label>Belge secimi</label>
+                        <div class="picker-grid">
+                            <button class="picker" type="button" id="cameraPicker">
+                                <strong>Kamera ile cek</strong>
+                                <span>Arka kamerayi acip belgeyi aninda cekerek yukle.</span>
+                            </button>
+                            <button class="picker" type="button" id="libraryPicker">
+                                <strong>Galeriden veya PDF sec</strong>
+                                <span>Galeriden resim ya da dosyalardan PDF ve diger destekli gorselleri sec.</span>
+                            </button>
+                        </div>
                     </div>
+
+                    <input id="cameraInput" type="file" name="file" accept="image/*" capture="environment">
+                    <input id="libraryInput" type="file" name="file" accept="image/*,.pdf">
+
+                    <div id="selectedFile" class="file-chip">Henuz dosya secilmedi.</div>
+
                     <button type="submit">Yukle ve isle</button>
                 </form>
                 <div class="tiny">Desteklenen formatlar: JPG, JPEG, PNG, WEBP ve PDF. iPhone tarafinda HEIC yerine JPG veya ekran goruntusu daha sorunsuz olur.</div>
@@ -242,15 +289,15 @@
                 <div class="highlights">
                     <div class="highlight">
                         <strong>Kamera odakli</strong><br>
-                        Tek ekrandan belge secimi ve yukleme.
+                        Belgeyi tek dokunusla cekip dogrudan isleyebilirsin.
                     </div>
                     <div class="highlight">
-                        <strong>Kayit akisi</strong><br>
-                        AI sonucu duzenle, sonra kaydet.
+                        <strong>PDF ve galeri secimi</strong><br>
+                        Mevcut dosyalarini da ayrica yukleyebilirsin.
                     </div>
                     <div class="highlight">
                         <strong>Mobil taban</strong><br>
-                        Sonraki adimda offline deneyim ve ana ekran davranisi guclendirilebilir.
+                        Sonraki adimda offline deneyim ve ana ekran davranisi daha da guclendirilebilir.
                     </div>
                 </div>
             </aside>
@@ -261,10 +308,52 @@
         const installBanner = document.getElementById("installBanner");
         const installButton = document.getElementById("installButton");
         const installButtonSecondary = document.getElementById("installButtonSecondary");
+        const cameraPicker = document.getElementById("cameraPicker");
+        const libraryPicker = document.getElementById("libraryPicker");
+        const cameraInput = document.getElementById("cameraInput");
+        const libraryInput = document.getElementById("libraryInput");
+        const selectedFile = document.getElementById("selectedFile");
 
         function showInstallUI() {
             if (installBanner) installBanner.classList.add("show");
         }
+
+        function setSelectedFile(file) {
+            selectedFile.textContent = file ? `Secilen dosya: ${file.name}` : "Henuz dosya secilmedi.";
+        }
+
+        cameraPicker?.addEventListener("click", () => cameraInput.click());
+        libraryPicker?.addEventListener("click", () => libraryInput.click());
+
+        cameraInput?.addEventListener("change", () => {
+            if (cameraInput.files.length) {
+                libraryInput.value = "";
+                setSelectedFile(cameraInput.files[0]);
+            }
+        });
+
+        libraryInput?.addEventListener("change", () => {
+            if (libraryInput.files.length) {
+                cameraInput.value = "";
+                setSelectedFile(libraryInput.files[0]);
+            }
+        });
+
+        document.querySelector("form").addEventListener("submit", (event) => {
+            const cameraFile = cameraInput.files.length ? cameraInput.files[0] : null;
+            const libraryFile = libraryInput.files.length ? libraryInput.files[0] : null;
+
+            if (cameraFile && !libraryFile) {
+                const transfer = new DataTransfer();
+                transfer.items.add(cameraFile);
+                libraryInput.files = transfer.files;
+            }
+
+            if (!libraryInput.files.length) {
+                event.preventDefault();
+                alert("Lutfen once kamera ile cek ya da galeriden/PDF olarak bir dosya sec.");
+            }
+        });
 
         async function triggerInstall() {
             if (!deferredPrompt) {
