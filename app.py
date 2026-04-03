@@ -31,6 +31,10 @@ STATIC_DIR.mkdir(exist_ok=True)
 
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "")
 CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-opus-4-6")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
+SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY", "")
+SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "evrak-files")
 MODEL_ALIASES = {
     "claude-opus-4.6": "claude-opus-4-6",
 }
@@ -42,8 +46,11 @@ def normalize_model_name(value: str) -> str:
         model_name = model_name.split("=")[-1].strip()
     return MODEL_ALIASES.get(model_name, model_name or "claude-opus-4-6")
 
-DATABASE_URL = f"sqlite:///{DATA_DIR / 'app.db'}"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATA_DIR / 'app.db'}")
+engine_kwargs = {}
+if DATABASE_URL.startswith("sqlite"):
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
 
@@ -138,6 +145,40 @@ def get_mime_type(filename: str) -> str:
     if lower.endswith(".pdf"):
         return "application/pdf"
     return "application/octet-stream"
+
+
+def is_supabase_storage_enabled() -> bool:
+    return bool(SUPABASE_URL and SUPABASE_SECRET_KEY and SUPABASE_BUCKET)
+
+
+def build_public_file_url(path: str) -> str:
+    if not path:
+        return ""
+    if path.startswith("http://") or path.startswith("https://"):
+        return path
+    return f"/uploads/{path}"
+
+
+def upload_to_supabase_storage(filepath: Path, object_name: str, mime_type: str) -> str:
+    if not is_supabase_storage_enabled():
+        return build_public_file_url(object_name)
+
+    upload_url = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET}/{object_name}"
+    headers = {
+        "apikey": SUPABASE_SECRET_KEY,
+        "Authorization": f"Bearer {SUPABASE_SECRET_KEY}",
+        "Content-Type": mime_type,
+        "x-upsert": "true",
+    }
+    with open(filepath, "rb") as file_handle:
+        response = requests.post(upload_url, headers=headers, data=file_handle, timeout=120)
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as exc:
+        detail = response.text[:500] if response.text else "Dosya depolamaya yuklenemedi."
+        raise HTTPException(status_code=502, detail=detail) from exc
+
+    return f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{object_name}"
 
 
 def build_claude_content(filepath: Path, prompt: str) -> list[dict]:
@@ -286,17 +327,22 @@ async def upload_document(
         shutil.copyfileobj(file.file, buffer)
 
     try:
+        public_file_url = upload_to_supabase_storage(file_path, safe_name, mime_type)
         ai_result = extract_with_claude(file_path)
     except Exception:
         if file_path.exists():
             file_path.unlink()
         raise
+    finally:
+        if file_path.exists():
+            file_path.unlink()
 
     context = {
         "request": request,
         "musteri": musteri,
         "dosya_adi": safe_name,
-        "dosya_yolu": str(file_path),
+        "dosya_yolu": public_file_url,
+        "dosya_url": public_file_url,
         "result": ai_result,
         "is_pdf": mime_type == "application/pdf",
     }
@@ -353,6 +399,8 @@ def list_records(request: Request):
         records = db.query(Record).order_by(Record.created_at.desc()).all()
     finally:
         db.close()
+    for record in records:
+        record.preview_url = build_public_file_url(record.dosya_yolu or record.dosya_adi or "")
     template = jinja_env.get_template("records.html")
     return HTMLResponse(template.render(request=request, records=records))
 

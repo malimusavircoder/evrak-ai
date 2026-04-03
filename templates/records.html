@@ -51,7 +51,7 @@
                         <td>{{ record.tarih or "-" }}</td>
                         <td>Matrah: {{ "%.2f"|format(record.matrah or 0) }}<br>KDV: {{ "%.2f"|format(record.kdv_tutari or 0) }}<br>Toplam: {{ "%.2f"|format(record.toplam or 0) }}</td>
                         <td><span class="status">{{ record.durum }}</span></td>
-                        <td>{% if record.dosya_adi %}<a href="/uploads/{{ record.dosya_adi }}" target="_blank" rel="noopener">{{ record.dosya_adi }}</a>{% else %}-{% endif %}</td>
+                        <td>{% if record.dosya_adi %}<a href="{{ record.preview_url }}" target="_blank" rel="noopener">{{ record.dosya_adi }}</a>{% else %}-{% endif %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

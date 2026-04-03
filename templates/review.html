@@ -45,9 +45,9 @@
                 <h1>Belge onizleme</h1>
                 <div class="meta">Musteri: <strong>{{ musteri }}</strong><br>Dosya: <strong>{{ dosya_adi }}</strong></div>
                 {% if is_pdf %}
-                <div class="pdf-note">PDF basariyla analiz edildi. Performans icin burada hafif bir onizleme akisi kullaniyoruz. Istersen dosyayi yeni sekmede ac: <a href="/uploads/{{ dosya_adi }}" target="_blank" rel="noopener">PDF goruntule</a></div>
+                <div class="pdf-note">PDF basariyla analiz edildi. Performans icin burada hafif bir onizleme akisi kullaniyoruz. Istersen dosyayi yeni sekmede ac: <a href="{{ dosya_url }}" target="_blank" rel="noopener">PDF goruntule</a></div>
                 {% else %}
-                <img class="preview" src="/uploads/{{ dosya_adi }}" alt="Yuklenen belge onizlemesi">
+                <img class="preview" src="{{ dosya_url }}" alt="Yuklenen belge onizlemesi">
                 {% endif %}
             </section>
             <section class="card">

@@ -11,3 +11,13 @@ services:
         sync: false
       - key: CLAUDE_MODEL
         value: claude-opus-4-6
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: SUPABASE_BUCKET
+        value: evrak-files
