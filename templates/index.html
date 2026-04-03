@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evrak AI</title>
+    <meta name="theme-color" content="#0f766e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Evrak AI">
+    <link rel="manifest" href="/static/manifest.webmanifest">
+    <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/static/icon.svg">
+    <style>
+        :root {
+            --surface: rgba(255, 253, 248, 0.92);
+            --ink: #1f2937;
+            --muted: #6b7280;
+            --line: #ded7cb;
+            --accent: #0f766e;
+            --accent-strong: #115e59;
+            --accent-soft: #d6f1ec;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            margin: 0;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 32%),
+                radial-gradient(circle at top right, rgba(180, 83, 9, 0.14), transparent 28%),
+                linear-gradient(180deg, #faf6ef 0%, #efe6d7 100%);
+            min-height: 100vh;
+        }
+        .shell {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 20px 16px 32px;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            text-decoration: none;
+            color: var(--accent-strong);
+            font-weight: 700;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .badge {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent) 0%, #0b5d57 100%);
+            color: white;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            box-shadow: 0 12px 24px rgba(15, 118, 110, 0.18);
+        }
+        .hero {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 18px;
+            align-items: stretch;
+        }
+        .card {
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 22px;
+            background: var(--surface);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 16px 40px rgba(52, 42, 26, 0.08);
+        }
+        .eyebrow {
+            margin: 0 0 10px;
+            font-size: 13px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent-strong);
+            font-weight: 800;
+        }
+        h1 {
+            margin: 0 0 14px;
+            font-size: clamp(2rem, 4vw, 3.4rem);
+            line-height: 0.95;
+        }
+        h2 {
+            margin: 0 0 12px;
+        }
+        .lead {
+            margin: 0 0 18px;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        .highlights {
+            display: grid;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        .highlight {
+            border: 1px solid #e6dfd3;
+            border-radius: 16px;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.72);
+        }
+        .install-card {
+            background: linear-gradient(180deg, #113b39 0%, #0f766e 100%);
+            color: white;
+        }
+        .install-card p {
+            color: rgba(255, 255, 255, 0.82);
+        }
+        .install-banner {
+            display: none;
+            margin-bottom: 14px;
+            border-radius: 18px;
+            padding: 14px;
+            background: var(--accent-soft);
+            border: 1px solid #a7ddd3;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .install-banner.show {
+            display: flex;
+        }
+        form {
+            display: grid;
+            gap: 14px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        input, button {
+            width: 100%;
+            padding: 14px 15px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            font: inherit;
+        }
+        input[type="file"] {
+            background: white;
+        }
+        button {
+            cursor: pointer;
+            border: none;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent) 0%, #0b5d57 100%);
+            color: white;
+            box-shadow: 0 10px 24px rgba(15, 118, 110, 0.22);
+        }
+        .secondary-btn {
+            background: white;
+            color: var(--accent-strong);
+            box-shadow: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .tiny {
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        @media (max-width: 860px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+            .shell {
+                padding: 14px 14px 28px;
+            }
+            .card {
+                padding: 18px;
+                border-radius: 20px;
+            }
+            h1 {
+                line-height: 1.02;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <div class="nav">
+            <div class="brand">
+                <div class="badge">EA</div>
+                <div>
+                    <strong>Evrak AI</strong><br>
+                    <span style="color: var(--muted);">Mobil belge toplama asistani</span>
+                </div>
+            </div>
+            <a href="/records">Kayitlar</a>
+        </div>
+
+        <div id="installBanner" class="install-banner">
+            <div>
+                <strong>Telefonuna ekle</strong><br>
+                <span class="tiny">Bu ekrani ana ekrana ekleyip uygulama gibi kullanabilirsin.</span>
+            </div>
+            <button id="installButton" type="button" style="width:auto; padding:12px 18px;">Yukle</button>
+        </div>
+
+        <div class="hero">
+            <section class="card">
+                <p class="eyebrow">Hizli Akis</p>
+                <h1>Fisi cek, AI alanlari cikarsin, kayda donsun.</h1>
+                <p class="lead">Telefon kamerasi ya da PDF ile belgeyi yukle. Evrak AI belge turu, tutar, firma ve vergi bilgisini cikarip kayit icin onune getirir.</p>
+
+                <form action="/upload" method="post" enctype="multipart/form-data">
+                    <div>
+                        <label for="musteri">Musteri</label>
+                        <input id="musteri" type="text" name="musteri" placeholder="Orn: Ayse Ltd" required>
+                    </div>
+                    <div>
+                        <label for="file">Dosya</label>
+                        <input id="file" type="file" name="file" accept="image/*,.pdf" capture="environment" required>
+                    </div>
+                    <button type="submit">Yukle ve isle</button>
+                </form>
+                <div class="tiny">Desteklenen formatlar: JPG, JPEG, PNG, WEBP ve PDF. iPhone tarafinda HEIC yerine JPG veya ekran goruntusu daha sorunsuz olur.</div>
+            </section>
+
+            <aside class="card install-card">
+                <p class="eyebrow" style="color:#c7f4ec;">PWA Hazir</p>
+                <h2>Ana ekrana eklenebilir surum</h2>
+                <p>Bu surum artik Progressive Web App temeline sahip. Uygun tarayicilarda ana ekrana eklenebilir ve temel ekranlar cache'lenir.</p>
+                <button id="installButtonSecondary" class="secondary-btn" type="button">Uygulamayi yukle</button>
+                <div class="highlights">
+                    <div class="highlight">
+                        <strong>Kamera odakli</strong><br>
+                        Tek ekrandan belge secimi ve yukleme.
+                    </div>
+                    <div class="highlight">
+                        <strong>Kayit akisi</strong><br>
+                        AI sonucu duzenle, sonra kaydet.
+                    </div>
+                    <div class="highlight">
+                        <strong>Mobil taban</strong><br>
+                        Sonraki adimda offline deneyim ve ana ekran davranisi guclendirilebilir.
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+    <script>
+        let deferredPrompt = null;
+        const installBanner = document.getElementById("installBanner");
+        const installButton = document.getElementById("installButton");
+        const installButtonSecondary = document.getElementById("installButtonSecondary");
+
+        function showInstallUI() {
+            if (installBanner) installBanner.classList.add("show");
+        }
+
+        async function triggerInstall() {
+            if (!deferredPrompt) {
+                alert("Bu cihaz ya da tarayici otomatik yukleme istemi vermiyor. Tarayici menusunden 'Ana ekrana ekle' secenegini kullanabilirsin.");
+                return;
+            }
+            deferredPrompt.prompt();
+            await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            if (installBanner) installBanner.classList.remove("show");
+        }
+
+        window.addEventListener("beforeinstallprompt", (event) => {
+            event.preventDefault();
+            deferredPrompt = event;
+            showInstallUI();
+        });
+
+        installButton?.addEventListener("click", triggerInstall);
+        installButtonSecondary?.addEventListener("click", triggerInstall);
+
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("/static/sw.js");
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Belge Kontrolu</title>
+    <meta name="theme-color" content="#0f766e">
+    <link rel="manifest" href="/static/manifest.webmanifest">
+    <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+    <style>
+        :root { --surface: rgba(255, 253, 248, 0.94); --ink: #1f2937; --muted: #6b7280; --line: #ded7cb; --accent: #0f766e; --accent-strong: #115e59; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; background: radial-gradient(circle at top left, rgba(15, 118, 110, 0.14), transparent 30%), linear-gradient(180deg, #f8f4ec 0%, #efe5d7 100%); color: var(--ink); }
+        .shell { max-width: 1080px; margin: 0 auto; padding: 18px 16px calc(88px + env(safe-area-inset-bottom)); }
+        .topbar { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+        .topbar a { color: var(--accent-strong); text-decoration: none; font-weight: 700; }
+        .grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 18px; }
+        .card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 18px; box-shadow: 0 12px 32px rgba(52, 42, 26, 0.08); }
+        .meta { color: var(--muted); font-size: 14px; margin-bottom: 14px; line-height: 1.6; }
+        .preview { width: 100%; min-height: 420px; object-fit: contain; border: 1px solid var(--line); border-radius: 14px; background: #f8f8f8; }
+        .pdf-note { padding: 18px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); background: #faf7f2; line-height: 1.6; }
+        form { display: grid; gap: 12px; }
+        label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+        input, textarea, select { width: 100%; padding: 12px 13px; border-radius: 12px; border: 1px solid var(--line); background: white; font: inherit; }
+        textarea { min-height: 96px; resize: vertical; }
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .actions { position: sticky; bottom: 10px; display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; }
+        button, .button-link { border: none; border-radius: 999px; padding: 13px 18px; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
+        .primary { background: linear-gradient(135deg, var(--accent) 0%, #0b5d57 100%); color: white; box-shadow: 0 10px 24px rgba(15, 118, 110, 0.22); }
+        .secondary { background: #ece7de; color: var(--ink); }
+        .bottom-nav { position: fixed; left: 12px; right: 12px; bottom: 12px; display: none; justify-content: space-between; gap: 10px; padding: 10px; border-radius: 18px; background: rgba(255, 253, 248, 0.96); border: 1px solid var(--line); backdrop-filter: blur(10px); box-shadow: 0 12px 32px rgba(52, 42, 26, 0.12); }
+        .bottom-nav a { flex: 1; text-align: center; text-decoration: none; color: var(--accent-strong); font-weight: 700; padding: 10px 12px; border-radius: 12px; }
+        .bottom-nav a.active { background: #dff5f0; }
+        @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } .preview { min-height: 300px; } .field-row { grid-template-columns: 1fr; } .bottom-nav { display: flex; } }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <div class="topbar">
+            <a href="/">Yeni belge yukle</a>
+            <a href="/records">Kayitlara git</a>
+        </div>
+        <div class="grid">
+            <section class="card">
+                <h1>Belge onizleme</h1>
+                <div class="meta">Musteri: <strong>{{ musteri }}</strong><br>Dosya: <strong>{{ dosya_adi }}</strong></div>
+                {% if is_pdf %}
+                <div class="pdf-note">PDF basariyla analiz edildi. Performans icin burada hafif bir onizleme akisi kullaniyoruz. Istersen dosyayi yeni sekmede ac: <a href="/uploads/{{ dosya_adi }}" target="_blank" rel="noopener">PDF goruntule</a></div>
+                {% else %}
+                <img class="preview" src="/uploads/{{ dosya_adi }}" alt="Yuklenen belge onizlemesi">
+                {% endif %}
+            </section>
+            <section class="card">
+                <h2>Alanlari kontrol et</h2>
+                <form action="/save" method="post">
+                    <input type="hidden" name="musteri" value="{{ musteri }}">
+                    <input type="hidden" name="dosya_adi" value="{{ dosya_adi }}">
+                    <input type="hidden" name="dosya_yolu" value="{{ dosya_yolu }}">
+                    <div>
+                        <label for="belge_tipi">Belge tipi</label>
+                        <select id="belge_tipi" name="belge_tipi">
+                            {% for option in ["fis", "alis faturasi", "satis faturasi", "e-Arsiv", "e-Fatura", "serbest meslek makbuzu", "gider pusulasi", "diger"] %}
+                            <option value="{{ option }}" {% if result.belge_tipi == option %}selected{% endif %}>{{ option }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field-row">
+                        <div><label for="firma">Firma</label><input id="firma" name="firma" value="{{ result.firma }}"></div>
+                        <div><label for="vergi_no">Vergi no</label><input id="vergi_no" name="vergi_no" value="{{ result.vergi_no }}"></div>
+                    </div>
+                    <div class="field-row">
+                        <div><label for="tarih">Tarih</label><input id="tarih" name="tarih" value="{{ result.tarih }}" placeholder="YYYY-MM-DD"></div>
+                        <div><label for="belge_no">Belge no</label><input id="belge_no" name="belge_no" value="{{ result.belge_no }}"></div>
+                    </div>
+                    <div class="field-row">
+                        <div><label for="matrah">Matrah</label><input id="matrah" name="matrah" inputmode="decimal" value="{{ result.matrah }}"></div>
+                        <div><label for="kdv_orani">KDV orani</label><input id="kdv_orani" name="kdv_orani" value="{{ result.kdv_orani }}"></div>
+                    </div>
+                    <div class="field-row">
+                        <div><label for="kdv_tutari">KDV tutari</label><input id="kdv_tutari" name="kdv_tutari" inputmode="decimal" value="{{ result.kdv_tutari }}"></div>
+                        <div><label for="toplam">Toplam</label><input id="toplam" name="toplam" inputmode="decimal" value="{{ result.toplam }}"></div>
+                    </div>
+                    <div><label for="aciklama">Aciklama</label><textarea id="aciklama" name="aciklama">{{ result.aciklama }}</textarea></div>
+                    <div><label for="durum">Durum</label><select id="durum" name="durum"><option value="Onaylandi" selected>Onaylandi</option><option value="Kontrol">Kontrol</option><option value="Reddedildi">Reddedildi</option></select></div>
+                    <div class="actions"><button class="primary" type="submit">Kaydi tamamla</button><a class="button-link secondary" href="/">Vazgec</a></div>
+                </form>
+            </section>
+        </div>
+    </div>
+    <nav class="bottom-nav"><a href="/">Yukle</a><a href="/records">Kayitlar</a><a class="active" href="#">Kontrol</a></nav>
+    <script>if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("/static/sw.js")); }</script>
+</body>
+</html>

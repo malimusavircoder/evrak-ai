@@ -1,0 +1,11 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+data/
+exports/
+uploads/
+*_response*.html
+review_check_*.html
+pdf_upload_*.html

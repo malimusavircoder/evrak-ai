@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Kayitlar</title>
+    <meta name="theme-color" content="#0f766e">
+    <link rel="manifest" href="/static/manifest.webmanifest">
+    <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+    <style>
+        :root { --surface: rgba(255, 253, 248, 0.96); --ink: #1f2937; --muted: #6b7280; --line: #ddd6ca; --accent: #0f766e; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: radial-gradient(circle at top right, rgba(15, 118, 110, 0.14), transparent 28%), linear-gradient(180deg, #f8f5ef 0%, #efe8dc 100%); color: var(--ink); font-family: "Segoe UI", Arial, sans-serif; }
+        .shell { max-width: 1180px; margin: 0 auto; padding: 20px 16px calc(88px + env(safe-area-inset-bottom)); }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+        .toolbar h1 { margin: 0; }
+        .toolbar p { margin: 6px 0 0; color: var(--muted); }
+        .toolbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .toolbar a { text-decoration: none; padding: 11px 16px; border-radius: 999px; font-weight: 700; }
+        .primary { background: linear-gradient(135deg, var(--accent) 0%, #0b5d57 100%); color: white; }
+        .secondary { background: #ebe5db; color: var(--ink); }
+        .table-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 10px 30px rgba(52, 42, 26, 0.08); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px 12px; text-align: left; border-bottom: 1px solid #eee7dc; vertical-align: top; }
+        th { background: #f6f1e8; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+        td small { color: var(--muted); }
+        .status { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #dff5f0; color: #115e59; font-size: 13px; font-weight: 700; }
+        .empty { padding: 28px; text-align: center; color: var(--muted); }
+        .bottom-nav { position: fixed; left: 12px; right: 12px; bottom: 12px; display: none; justify-content: space-between; gap: 10px; padding: 10px; border-radius: 18px; background: rgba(255, 253, 248, 0.96); border: 1px solid var(--line); backdrop-filter: blur(10px); box-shadow: 0 12px 32px rgba(52, 42, 26, 0.12); }
+        .bottom-nav a { flex: 1; text-align: center; text-decoration: none; color: var(--accent); font-weight: 700; padding: 10px 12px; border-radius: 12px; }
+        .bottom-nav a.active { background: #dff5f0; }
+        @media (max-width: 860px) { .table-wrap { overflow-x: auto; } table { min-width: 900px; } .bottom-nav { display: flex; } }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <div class="toolbar">
+            <div><h1>Kayitlar</h1><p>Islenen belgeleri buradan takip edebilirsin.</p></div>
+            <div class="toolbar-actions"><a class="secondary" href="/">Yeni belge</a><a class="primary" href="/export">Excel indir</a></div>
+        </div>
+        <div class="table-wrap">
+            {% if records %}
+            <table>
+                <thead><tr><th>Musteri</th><th>Belge</th><th>Firma</th><th>Tarih</th><th>Tutarlar</th><th>Durum</th><th>Dosya</th></tr></thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td><strong>{{ record.musteri }}</strong><br><small>{{ record.created_at.strftime("%Y-%m-%d %H:%M") }}</small></td>
+                        <td><strong>{{ record.belge_tipi or "-" }}</strong><br><small>No: {{ record.belge_no or "-" }}</small></td>
+                        <td><strong>{{ record.firma or "-" }}</strong><br><small>VKN: {{ record.vergi_no or "-" }}</small></td>
+                        <td>{{ record.tarih or "-" }}</td>
+                        <td>Matrah: {{ "%.2f"|format(record.matrah or 0) }}<br>KDV: {{ "%.2f"|format(record.kdv_tutari or 0) }}<br>Toplam: {{ "%.2f"|format(record.toplam or 0) }}</td>
+                        <td><span class="status">{{ record.durum }}</span></td>
+                        <td>{% if record.dosya_adi %}<a href="/uploads/{{ record.dosya_adi }}" target="_blank" rel="noopener">{{ record.dosya_adi }}</a>{% else %}-{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty">Henuz kayit yok. Ilk belgeyi yuklemek icin <a href="/">ana sayfaya don</a>.</div>
+            {% endif %}
+        </div>
+    </div>
+    <nav class="bottom-nav"><a href="/">Yukle</a><a class="active" href="/records">Kayitlar</a><a href="/export">Excel</a></nav>
+    <script>if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("/static/sw.js")); }</script>
+</body>
+</html>
