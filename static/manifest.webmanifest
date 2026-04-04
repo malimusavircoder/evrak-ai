@@ -5,8 +5,25 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
+  "lang": "tr",
   "background_color": "#f8f4ec",
   "theme_color": "#0f766e",
+  "categories": ["business", "productivity", "finance"],
+  "shortcuts": [
+    {
+      "name": "Yeni Evrak",
+      "short_name": "Yukle",
+      "description": "Dogrudan belge yukleme ekranini ac",
+      "url": "/"
+    },
+    {
+      "name": "Kayitlar",
+      "short_name": "Kayitlar",
+      "description": "Islenen evrak kayitlarini ac",
+      "url": "/records"
+    }
+  ],
   "icons": [
     {
       "src": "/static/icon.svg",

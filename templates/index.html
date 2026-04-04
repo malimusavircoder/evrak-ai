@@ -6,8 +6,10 @@
     <title>Evrak AI</title>
     <meta name="theme-color" content="#0f766e">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Evrak AI">
+    <meta name="application-name" content="Evrak AI">
+    <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="/static/manifest.webmanifest">
     <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/static/icon.svg">
@@ -35,7 +37,7 @@
         .shell {
             max-width: 960px;
             margin: 0 auto;
-            padding: 20px 16px 32px;
+            padding: 20px 16px calc(104px + env(safe-area-inset-bottom));
         }
         .nav {
             display: flex;
@@ -49,6 +51,9 @@
             text-decoration: none;
             color: var(--accent-strong);
             font-weight: 700;
+        }
+        .nav-link-mobile {
+            display: none;
         }
         .brand {
             display: flex;
@@ -80,6 +85,20 @@
             backdrop-filter: blur(8px);
             box-shadow: 0 16px 40px rgba(52, 42, 26, 0.08);
         }
+        .hero-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-card::after {
+            content: "";
+            position: absolute;
+            inset: auto -40px -50px auto;
+            width: 150px;
+            height: 150px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(15, 118, 110, 0.14) 0%, rgba(15, 118, 110, 0) 70%);
+            pointer-events: none;
+        }
         .eyebrow {
             margin: 0 0 10px;
             font-size: 13px;
@@ -102,10 +121,36 @@
             font-size: 1rem;
             line-height: 1.6;
         }
+        .hero-stats {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 0 0 18px;
+        }
+        .hero-stat {
+            padding: 9px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid #e7ddcf;
+            color: var(--accent-strong);
+            font-size: 13px;
+            font-weight: 700;
+        }
         .highlights {
             display: grid;
             gap: 10px;
             margin-top: 18px;
+        }
+        .mobile-summary {
+            display: none;
+            margin: 0 0 12px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid #e7dece;
+            color: var(--muted);
+            line-height: 1.5;
+            font-size: 14px;
         }
         .highlight {
             border: 1px solid #e6dfd3;
@@ -209,6 +254,84 @@
             border: 1px dashed var(--line);
             font-size: 14px;
         }
+        .quick-tips {
+            display: grid;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .quick-tip {
+            padding: 12px 14px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid #e7dece;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .submit-wrap {
+            display: grid;
+            gap: 10px;
+        }
+        .submit-note {
+            font-size: 13px;
+            color: var(--muted);
+            text-align: center;
+        }
+        .bottom-cta {
+            display: none;
+            position: fixed;
+            left: 12px;
+            right: 12px;
+            bottom: calc(12px + env(safe-area-inset-bottom));
+            padding: 10px;
+            border-radius: 20px;
+            background: rgba(255, 253, 248, 0.96);
+            border: 1px solid #e6dccd;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 12px 32px rgba(52, 42, 26, 0.12);
+            z-index: 15;
+        }
+        .bottom-cta button {
+            min-height: 52px;
+            margin: 0;
+        }
+        .mobile-tabbar {
+            display: none;
+        }
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            place-items: center;
+            padding: 24px;
+            background: rgba(15, 22, 28, 0.52);
+            backdrop-filter: blur(6px);
+            z-index: 20;
+        }
+        .loading-overlay.show {
+            display: grid;
+        }
+        .loading-card {
+            width: min(100%, 420px);
+            padding: 24px;
+            border-radius: 24px;
+            background: rgba(255, 253, 248, 0.96);
+            border: 1px solid #e6ddcf;
+            box-shadow: 0 24px 60px rgba(24, 26, 27, 0.2);
+            text-align: center;
+        }
+        .spinner {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 14px;
+            border-radius: 999px;
+            border: 4px solid #d5ebe7;
+            border-top-color: var(--accent);
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
         .tiny {
             margin-top: 10px;
             color: var(--muted);
@@ -217,14 +340,119 @@
         }
         @media (max-width: 860px) {
             .hero { grid-template-columns: 1fr; }
-            .shell { padding: 14px 14px 28px; }
-            .card { padding: 18px; border-radius: 20px; }
+            .shell { padding: 12px 12px calc(120px + env(safe-area-inset-bottom)); }
+            .card { padding: 16px; border-radius: 20px; }
             .picker-grid { grid-template-columns: 1fr; }
             h1 { line-height: 1.02; }
+            button, input { min-height: 54px; }
+            .nav a {
+                width: 100%;
+                text-align: center;
+                padding: 12px 14px;
+                border-radius: 14px;
+                background: rgba(255, 255, 255, 0.72);
+                border: 1px solid #e5dbcd;
+            }
+            .nav-link-desktop {
+                display: none;
+            }
+            .nav-link-mobile {
+                display: block;
+                width: auto;
+                margin-left: auto;
+                padding: 10px 12px;
+                background: transparent;
+                border: none;
+            }
+            .brand span {
+                display: none;
+            }
+            h1 {
+                font-size: 2.35rem;
+                margin-bottom: 10px;
+            }
+            .lead {
+                margin-bottom: 10px;
+                font-size: 0.96rem;
+            }
+            .mobile-summary {
+                display: block;
+            }
+            .hero-stats {
+                margin-bottom: 12px;
+            }
+            .hero-stat {
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+            .install-card {
+                padding-top: 14px;
+            }
+            .install-card h2 {
+                font-size: 1.5rem;
+                line-height: 1.05;
+            }
+            .install-card p {
+                margin-bottom: 10px;
+                font-size: 0.95rem;
+            }
+            .highlights {
+                gap: 8px;
+                margin-top: 12px;
+            }
+            .highlight {
+                padding: 10px 12px;
+            }
+            .quick-tips {
+                display: none;
+            }
+            .submit-wrap {
+                display: none;
+            }
+            .bottom-cta {
+                display: block;
+            }
+            .mobile-tabbar {
+                position: fixed;
+                left: 12px;
+                right: 12px;
+                bottom: calc(86px + env(safe-area-inset-bottom));
+                display: flex;
+                gap: 10px;
+                padding: 10px;
+                border-radius: 18px;
+                background: rgba(255, 253, 248, 0.92);
+                border: 1px solid #e7dece;
+                backdrop-filter: blur(10px);
+                z-index: 14;
+            }
+            .mobile-tabbar a {
+                flex: 1;
+                text-align: center;
+                text-decoration: none;
+                color: var(--accent-strong);
+                font-weight: 700;
+                padding: 10px 12px;
+                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.66);
+            }
+            .mobile-tabbar a.active {
+                background: #dff5f0;
+            }
+            .loading-card {
+                padding: 22px 18px;
+            }
         }
     </style>
 </head>
 <body>
+    <div id="loadingOverlay" class="loading-overlay" aria-hidden="true">
+        <div class="loading-card">
+            <div class="spinner"></div>
+            <h2>Belge isleniyor</h2>
+            <p class="lead" style="margin-bottom:0;">Dosya yukleniyor, AI alanlari cikariyor. Telefonunda bu adim 10-40 saniye surebilir.</p>
+        </div>
+    </div>
     <div class="shell">
         <div class="nav">
             <div class="brand">
@@ -234,7 +462,8 @@
                     <span style="color: var(--muted);">Mobil belge toplama asistani</span>
                 </div>
             </div>
-            <a href="/records">Kayitlar</a>
+            <a class="nav-link-desktop" href="/records">Kayitlar</a>
+            <a class="nav-link-mobile" href="/records">Kayitlar</a>
         </div>
 
         <div id="installBanner" class="install-banner">
@@ -246,10 +475,16 @@
         </div>
 
         <div class="hero">
-            <section class="card">
+            <section class="card hero-card">
                 <p class="eyebrow">Hizli Akis</p>
                 <h1>Kamera ile cek ya da galeriden ve dosyalardan yukle.</h1>
                 <p class="lead">Telefon kullaniminda iki ayri secenek sunuyoruz: belgeyi aninda kamerayla cekebilir ya da galeriden, dosyalardan PDF ve resim secerek yukleme yapabilirsin.</p>
+                <div class="mobile-summary">En hizli yol: musteri adini yaz, kameradan cek veya PDF sec, sonra alttaki sabit butondan islemi baslat.</div>
+                <div class="hero-stats">
+                    <div class="hero-stat">Kamera cekimi</div>
+                    <div class="hero-stat">PDF yukleme</div>
+                    <div class="hero-stat">Hizli kayit</div>
+                </div>
 
                 <form action="/upload" method="post" enctype="multipart/form-data">
                     <div>
@@ -276,9 +511,16 @@
 
                     <div id="selectedFile" class="file-chip">Henuz dosya secilmedi.</div>
 
-                    <button type="submit">Yukle ve isle</button>
+                    <div class="submit-wrap">
+                        <button id="submitButton" type="submit">Yukle ve isle</button>
+                        <div class="submit-note">Yukleme sonrasi kontrol ekranina gececeksin.</div>
+                    </div>
                 </form>
                 <div class="tiny">Desteklenen formatlar: JPG, JPEG, PNG, WEBP ve PDF. iPhone tarafinda HEIC yerine JPG veya ekran goruntusu daha sorunsuz olur.</div>
+                <div class="quick-tips">
+                    <div class="quick-tip"><strong>Hizli ipucu:</strong> Makbuzu duz zemine koyup tek kare cekersen alanlar daha dogru okunur.</div>
+                    <div class="quick-tip"><strong>PDF yukleme:</strong> WhatsApp veya e-posta ile gelen PDF'leri de dogrudan secip isleyebilirsin.</div>
+                </div>
             </section>
 
             <aside class="card install-card">
@@ -303,6 +545,13 @@
             </aside>
         </div>
     </div>
+    <nav class="mobile-tabbar">
+        <a class="active" href="/">Yukle</a>
+        <a href="/records">Kayitlar</a>
+    </nav>
+    <div class="bottom-cta">
+        <button id="submitButtonMobile" type="button">Yukle ve isle</button>
+    </div>
     <script>
         let deferredPrompt = null;
         const installBanner = document.getElementById("installBanner");
@@ -313,6 +562,10 @@
         const cameraInput = document.getElementById("cameraInput");
         const libraryInput = document.getElementById("libraryInput");
         const selectedFile = document.getElementById("selectedFile");
+        const loadingOverlay = document.getElementById("loadingOverlay");
+        const submitButton = document.getElementById("submitButton");
+        const submitButtonMobile = document.getElementById("submitButtonMobile");
+        const uploadForm = document.querySelector("form");
 
         function showInstallUI() {
             if (installBanner) installBanner.classList.add("show");
@@ -339,7 +592,7 @@
             }
         });
 
-        document.querySelector("form").addEventListener("submit", (event) => {
+        function handleSubmit(event) {
             const cameraFile = cameraInput.files.length ? cameraInput.files[0] : null;
             const libraryFile = libraryInput.files.length ? libraryInput.files[0] : null;
 
@@ -352,8 +605,20 @@
             if (!libraryInput.files.length) {
                 event.preventDefault();
                 alert("Lutfen once kamera ile cek ya da galeriden/PDF olarak bir dosya sec.");
+                return;
             }
-        });
+
+            submitButton.disabled = true;
+            submitButton.textContent = "Isleniyor...";
+            if (submitButtonMobile) {
+                submitButtonMobile.disabled = true;
+                submitButtonMobile.textContent = "Isleniyor...";
+            }
+            loadingOverlay?.classList.add("show");
+        }
+
+        uploadForm.addEventListener("submit", handleSubmit);
+        submitButtonMobile?.addEventListener("click", () => uploadForm.requestSubmit());
 
         async function triggerInstall() {
             if (!deferredPrompt) {

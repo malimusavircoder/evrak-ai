@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Kayitlar</title>
     <meta name="theme-color" content="#0f766e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="/static/manifest.webmanifest">
     <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
     <style>
@@ -26,10 +28,20 @@
         td small { color: var(--muted); }
         .status { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #dff5f0; color: #115e59; font-size: 13px; font-weight: 700; }
         .empty { padding: 28px; text-align: center; color: var(--muted); }
+        .records-mobile { display: none; gap: 12px; }
+        .record-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; box-shadow: 0 10px 30px rgba(52, 42, 26, 0.08); }
+        .record-card h3 { margin: 0 0 6px; font-size: 1rem; }
+        .record-card p { margin: 0; color: var(--muted); line-height: 1.5; }
+        .record-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+        .record-chip { padding: 10px 12px; border-radius: 14px; background: #f7f2e8; border: 1px solid #ece2d3; }
+        .record-chip strong { display: block; margin-bottom: 4px; font-size: 13px; color: var(--muted); }
+        .record-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+        .record-links a { text-decoration: none; font-weight: 700; color: var(--accent); }
+        .empty strong { display: block; margin-bottom: 8px; color: var(--ink); font-size: 1.05rem; }
         .bottom-nav { position: fixed; left: 12px; right: 12px; bottom: 12px; display: none; justify-content: space-between; gap: 10px; padding: 10px; border-radius: 18px; background: rgba(255, 253, 248, 0.96); border: 1px solid var(--line); backdrop-filter: blur(10px); box-shadow: 0 12px 32px rgba(52, 42, 26, 0.12); }
         .bottom-nav a { flex: 1; text-align: center; text-decoration: none; color: var(--accent); font-weight: 700; padding: 10px 12px; border-radius: 12px; }
         .bottom-nav a.active { background: #dff5f0; }
-        @media (max-width: 860px) { .table-wrap { overflow-x: auto; } table { min-width: 900px; } .bottom-nav { display: flex; } }
+        @media (max-width: 860px) { .table-wrap { display: none; } .records-mobile { display: grid; } .record-grid { grid-template-columns: 1fr; } .bottom-nav { display: flex; } }
     </style>
 </head>
 <body>
@@ -38,6 +50,28 @@
             <div><h1>Kayitlar</h1><p>Islenen belgeleri buradan takip edebilirsin.</p></div>
             <div class="toolbar-actions"><a class="secondary" href="/">Yeni belge</a><a class="primary" href="/export">Excel indir</a></div>
         </div>
+        {% if records %}
+        <div class="records-mobile">
+            {% for record in records %}
+            <article class="record-card">
+                <h3>{{ record.musteri }}</h3>
+                <p>{{ record.created_at.strftime("%Y-%m-%d %H:%M") }}</p>
+                <div style="margin-top:12px;"><span class="status">{{ record.durum }}</span></div>
+                <div class="record-grid">
+                    <div class="record-chip"><strong>Belge</strong>{{ record.belge_tipi or "-" }}</div>
+                    <div class="record-chip"><strong>Tarih</strong>{{ record.tarih or "-" }}</div>
+                    <div class="record-chip"><strong>Firma</strong>{{ record.firma or "-" }}</div>
+                    <div class="record-chip"><strong>Belge No</strong>{{ record.belge_no or "-" }}</div>
+                    <div class="record-chip"><strong>Toplam</strong>{{ "%.2f"|format(record.toplam or 0) }}</div>
+                    <div class="record-chip"><strong>KDV</strong>{{ "%.2f"|format(record.kdv_tutari or 0) }}</div>
+                </div>
+                <div class="record-links">
+                    {% if record.dosya_adi %}<a href="{{ record.preview_url }}" target="_blank" rel="noopener">Dosyayi ac</a>{% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% endif %}
         <div class="table-wrap">
             {% if records %}
             <table>
@@ -57,7 +91,7 @@
                 </tbody>
             </table>
             {% else %}
-            <div class="empty">Henuz kayit yok. Ilk belgeyi yuklemek icin <a href="/">ana sayfaya don</a>.</div>
+            <div class="empty"><strong>Henuz kayit yok</strong>Ilk belgeyi yuklemek icin <a href="/">ana sayfaya don</a>.</div>
             {% endif %}
         </div>
     </div>

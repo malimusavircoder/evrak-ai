@@ -1,6 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="128" fill="#0f766e"/>
-  <path d="M128 132h180l76 76v172c0 22-18 40-40 40H168c-22 0-40-18-40-40V172c0-22 18-40 40-40Z" fill="#f8f4ec"/>
-  <path d="M308 132v68c0 22 18 40 40 40h68" fill="#d6f1ec"/>
-  <path d="M188 256h136M188 304h136M188 352h92" stroke="#0f766e" stroke-width="24" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="bg" x1="64" x2="448" y1="48" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1c7c73"/>
+      <stop offset="1" stop-color="#0f4f4c"/>
+    </linearGradient>
+    <linearGradient id="sheet" x1="150" x2="362" y1="116" y2="400" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fffdf8"/>
+      <stop offset="1" stop-color="#f1eadf"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="132" fill="url(#bg)"/>
+  <circle cx="408" cy="112" r="84" fill="#ffffff" fill-opacity=".08"/>
+  <circle cx="104" cy="428" r="92" fill="#ffffff" fill-opacity=".06"/>
+  <path d="M144 118h166l74 74v166c0 26-22 48-48 48H176c-26 0-48-22-48-48V166c0-26 22-48 48-48Z" fill="url(#sheet)"/>
+  <path d="M310 118v60c0 24 20 44 44 44h60" fill="#caeee7"/>
+  <path d="M190 246h132M190 292h132M190 338h88" stroke="#0f766e" stroke-linecap="round" stroke-width="22"/>
+  <rect x="138" y="76" width="118" height="76" rx="24" fill="#104d4a" opacity=".92"/>
+  <text x="197" y="126" fill="#fffdf8" font-family="Arial, sans-serif" font-size="52" font-weight="700" text-anchor="middle">EA</text>
 </svg>

@@ -4,9 +4,20 @@ FastAPI tabanli belge yukleme ve AI ile alan cikarma uygulamasi.
 
 ## Yerel calistirma
 
+### Windows
+
 ```powershell
 python -m venv venv
 venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app:app --reload
+```
+
+### macOS / Linux
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app:app --reload
 ```
@@ -23,6 +34,12 @@ SUPABASE_SECRET_KEY=
 SUPABASE_BUCKET=evrak-files
 ```
 
+Not:
+
+- `DATABASE_URL` bos birakilirsa uygulama varsayilan olarak yerel `SQLite` dosyasi kullanir.
+- `SUPABASE_*` alanlari doldurulursa yuklenen dosyalar `Supabase Storage` uzerine yazilir.
+- Windows'tan macOS'a dosya tasindiginda sanal ortam tekrar kurulmalidir.
+
 ## Render ile deploy
 
 1. Kodu GitHub'a gonder.
@@ -33,4 +50,4 @@ SUPABASE_BUCKET=evrak-files
 6. `SUPABASE_BUCKET=evrak-files` olarak ayarla.
 7. Deploy tamamlaninca gelen URL'i telefondan ac.
 
-Render servis tanimi [render.yaml](/C:/evrak-ai/render.yaml) icinde hazir.
+Render servis tanimi [render.yaml](/Users/murattufan/Desktop/evrak-ai/render.yaml) icinde hazir.

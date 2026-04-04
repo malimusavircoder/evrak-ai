@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Belge Kontrolu</title>
     <meta name="theme-color" content="#0f766e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="/static/manifest.webmanifest">
     <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
     <style>
@@ -23,6 +25,8 @@
         label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
         input, textarea, select { width: 100%; padding: 12px 13px; border-radius: 12px; border: 1px solid var(--line); background: white; font: inherit; }
         textarea { min-height: 96px; resize: vertical; }
+        .section-note { margin: 0 0 12px; color: var(--muted); line-height: 1.6; font-size: 14px; }
+        .meta-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: #edf7f4; color: var(--accent-strong); font-size: 13px; font-weight: 700; margin-bottom: 14px; }
         .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .actions { position: sticky; bottom: 10px; display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; }
         button, .button-link { border: none; border-radius: 999px; padding: 13px 18px; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
@@ -31,7 +35,7 @@
         .bottom-nav { position: fixed; left: 12px; right: 12px; bottom: 12px; display: none; justify-content: space-between; gap: 10px; padding: 10px; border-radius: 18px; background: rgba(255, 253, 248, 0.96); border: 1px solid var(--line); backdrop-filter: blur(10px); box-shadow: 0 12px 32px rgba(52, 42, 26, 0.12); }
         .bottom-nav a { flex: 1; text-align: center; text-decoration: none; color: var(--accent-strong); font-weight: 700; padding: 10px 12px; border-radius: 12px; }
         .bottom-nav a.active { background: #dff5f0; }
-        @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } .preview { min-height: 300px; } .field-row { grid-template-columns: 1fr; } .bottom-nav { display: flex; } }
+        @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } .preview { min-height: 300px; } .field-row { grid-template-columns: 1fr; } .bottom-nav { display: flex; } button, .button-link, input, select, textarea { min-height: 52px; } .actions > * { flex: 1 1 100%; text-align: center; } }
     </style>
 </head>
 <body>
@@ -43,6 +47,7 @@
         <div class="grid">
             <section class="card">
                 <h1>Belge onizleme</h1>
+                <div class="meta-pill">Telefon akisi icin optimize edildi</div>
                 <div class="meta">Musteri: <strong>{{ musteri }}</strong><br>Dosya: <strong>{{ dosya_adi }}</strong></div>
                 {% if is_pdf %}
                 <div class="pdf-note">PDF basariyla analiz edildi. Performans icin burada hafif bir onizleme akisi kullaniyoruz. Istersen dosyayi yeni sekmede ac: <a href="{{ dosya_url }}" target="_blank" rel="noopener">PDF goruntule</a></div>
@@ -52,6 +57,7 @@
             </section>
             <section class="card">
                 <h2>Alanlari kontrol et</h2>
+                <p class="section-note">AI tarafindan doldurulan alanlari hizlica gozden gecir. Yanlis ya da eksik kalanlari duzelttikten sonra kaydi tamamla.</p>
                 <form action="/save" method="post">
                     <input type="hidden" name="musteri" value="{{ musteri }}">
                     <input type="hidden" name="dosya_adi" value="{{ dosya_adi }}">

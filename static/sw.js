@@ -1,4 +1,4 @@
-const CACHE_NAME = "evrak-ai-v1";
+const CACHE_NAME = "evrak-ai-v2";
 const APP_SHELL = ["/", "/records", "/static/manifest.webmanifest", "/static/icon.svg"];
 
 self.addEventListener("install", (event) => {
