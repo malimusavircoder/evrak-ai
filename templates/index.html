@@ -158,6 +158,12 @@
             padding: 12px 14px;
             background: rgba(255, 255, 255, 0.72);
         }
+        .install-mini-note {
+            margin-top: 10px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.78);
+        }
         .install-card {
             background: linear-gradient(180deg, #113b39 0%, #0f766e 100%);
             color: white;
@@ -283,8 +289,8 @@
             left: 12px;
             right: 12px;
             bottom: calc(12px + env(safe-area-inset-bottom));
-            padding: 10px;
-            border-radius: 20px;
+            padding: 8px;
+            border-radius: 18px;
             background: rgba(255, 253, 248, 0.96);
             border: 1px solid #e6dccd;
             backdrop-filter: blur(10px);
@@ -292,7 +298,7 @@
             z-index: 15;
         }
         .bottom-cta button {
-            min-height: 52px;
+            min-height: 48px;
             margin: 0;
         }
         .mobile-tabbar {
@@ -389,19 +395,18 @@
                 padding-top: 14px;
             }
             .install-card h2 {
-                font-size: 1.5rem;
+                font-size: 1.35rem;
                 line-height: 1.05;
             }
             .install-card p {
-                margin-bottom: 10px;
-                font-size: 0.95rem;
+                margin-bottom: 8px;
+                font-size: 0.92rem;
             }
             .highlights {
-                gap: 8px;
-                margin-top: 12px;
+                display: none;
             }
-            .highlight {
-                padding: 10px 12px;
+            .install-mini-note {
+                display: block;
             }
             .quick-tips {
                 display: none;
@@ -416,11 +421,11 @@
                 position: fixed;
                 left: 12px;
                 right: 12px;
-                bottom: calc(86px + env(safe-area-inset-bottom));
+                bottom: calc(68px + env(safe-area-inset-bottom));
                 display: flex;
                 gap: 10px;
-                padding: 10px;
-                border-radius: 18px;
+                padding: 8px;
+                border-radius: 16px;
                 background: rgba(255, 253, 248, 0.92);
                 border: 1px solid #e7dece;
                 backdrop-filter: blur(10px);
@@ -432,7 +437,7 @@
                 text-decoration: none;
                 color: var(--accent-strong);
                 font-weight: 700;
-                padding: 10px 12px;
+                padding: 8px 10px;
                 border-radius: 12px;
                 background: rgba(255, 255, 255, 0.66);
             }
@@ -528,6 +533,7 @@
                 <h2>Ana ekrana eklenebilir surum</h2>
                 <p>Bu surum artik Progressive Web App temeline sahip. Uygun tarayicilarda ana ekrana eklenebilir ve temel ekranlar cache'lenir.</p>
                 <button id="installButtonSecondary" class="secondary-btn" type="button">Uygulamayi yukle</button>
+                <div class="install-mini-note">Istersen tarayici menusunden de "Ana ekrana ekle" secenegini kullanabilirsin.</div>
                 <div class="highlights">
                     <div class="highlight">
                         <strong>Kamera odakli</strong><br>
