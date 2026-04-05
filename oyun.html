@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stroop Renk Yarışması</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    h1 {
+      font-size: 42px;
+      margin: 0 0 10px;
+    }
+
+    .subtitle {
+      font-size: 20px;
+      color: #ccc;
+      margin-bottom: 24px;
+    }
+
+    .info {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+
+    .panel {
+      background: #1b1b1b;
+      border-radius: 14px;
+      padding: 14px 22px;
+      min-width: 160px;
+    }
+
+    #gameBox {
+      width: min(680px, 90vw);
+      height: min(320px, 45vw);
+      min-height: 220px;
+      margin: 0 auto 24px;
+      border-radius: 22px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 24px rgba(0,0,0,0.35);
+      border: 6px solid rgba(255,255,255,0.12);
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+    }
+
+    #word {
+      font-size: clamp(42px, 8vw, 86px);
+      font-weight: 700;
+      letter-spacing: 2px;
+      user-select: none;
+      text-transform: uppercase;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.45);
+      padding: 12px;
+    }
+
+    #status {
+      min-height: 34px;
+      font-size: 24px;
+      margin: 10px 0 8px;
+    }
+
+    #heard {
+      min-height: 28px;
+      font-size: 20px;
+      color: #bbb;
+      margin-bottom: 18px;
+    }
+
+    .controls {
+      margin-top: 10px;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      margin: 8px;
+    }
+
+    #startBtn {
+      background: #28a745;
+      color: white;
+    }
+
+    #restartBtn {
+      background: #007bff;
+      color: white;
+      display: none;
+    }
+
+    .rules {
+      margin-top: 24px;
+      color: #aaa;
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
+    .flash-correct {
+      box-shadow: 0 0 0 6px rgba(0,255,0,0.35), 0 0 24px rgba(0,255,0,0.25);
+      transform: scale(1.02);
+    }
+
+    .flash-wrong {
+      box-shadow: 0 0 0 6px rgba(255,0,0,0.35), 0 0 24px rgba(255,0,0,0.25);
+      transform: scale(0.99);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>RENKİ SÖYLE</h1>
+    <div class="subtitle">Kelimeyi değil, yazının rengini söyle.</div>
+
+    <div class="info">
+      <div class="panel">Süre: <span id="timer">30</span></div>
+      <div class="panel">Skor: <span id="score">0</span></div>
+    </div>
+
+    <div id="gameBox">
+      <div id="word">HAZIR</div>
+    </div>
+
+    <div id="status">Başlat'a bas ve mikrofon izni ver.</div>
+    <div id="heard"></div>
+
+    <div class="controls">
+      <button id="startBtn">Başlat</button>
+      <button id="restartBtn">Tekrar Oyna</button>
+    </div>
+
+    <div class="rules">
+      Örnek: Beyaz kutuda sarı renkle <b>KIRMIZI</b> yazıyorsa doğru cevap <b>sarı</b>.<br>
+      Beyaz kutuda yeşil renkle <b>MAVİ</b> yazıyorsa doğru cevap <b>yeşil</b>.
+    </div>
+  </div>
+
+  <script>
+    const colors = [
+      { name: "kırmızı", css: "#e53935", aliases: ["kirmizi", "kırmızı"] },
+      { name: "mavi", css: "#1e88e5", aliases: ["mavi"] },
+      { name: "yeşil", css: "#43a047", aliases: ["yesil", "yeşil"] },
+      { name: "sarı", css: "#fdd835", aliases: ["sari", "sarı"] },
+      { name: "mor", css: "#8e24aa", aliases: ["mor"] },
+      { name: "turuncu", css: "#fb8c00", aliases: ["turuncu"] }
+    ];
+
+    const timerEl = document.getElementById("timer");
+    const scoreEl = document.getElementById("score");
+    const boxEl = document.getElementById("gameBox");
+    const wordEl = document.getElementById("word");
+    const statusEl = document.getElementById("status");
+    const heardEl = document.getElementById("heard");
+    const startBtn = document.getElementById("startBtn");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let score = 0;
+    let timeLeft = 30;
+    let gameActive = false;
+    let timerInterval = null;
+    let recognition = null;
+    let currentAnswer = null;
+    let locked = false;
+
+    function normalizeText(text) {
+      return text
+        .toLowerCase()
+        .trim()
+        .replace(/i̇/g, "i")
+        .replace(/ı/g, "i")
+        .replace(/ğ/g, "g")
+        .replace(/ü/g, "u")
+        .replace(/ş/g, "s")
+        .replace(/ö/g, "o")
+        .replace(/ç/g, "c")
+        .replace(/[.,!?]/g, "");
+    }
+
+    function pickRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function flash(type) {
+      boxEl.classList.remove("flash-correct", "flash-wrong");
+      void boxEl.offsetWidth;
+      boxEl.classList.add(type === "correct" ? "flash-correct" : "flash-wrong");
+      setTimeout(() => {
+        boxEl.classList.remove("flash-correct", "flash-wrong");
+      }, 180);
+    }
+
+    function nextRound() {
+      if (!gameActive) return;
+
+      let correctColor = pickRandom(colors);
+      let wordText = pickRandom(colors);
+
+      while (wordText.name === correctColor.name) {
+        wordText = pickRandom(colors);
+      }
+
+      boxEl.style.background = "#ffffff";
+      wordEl.textContent = wordText.name.toUpperCase();
+      wordEl.style.color = correctColor.css;
+
+      currentAnswer = correctColor;
+      heardEl.textContent = "";
+      statusEl.textContent = "Yazının rengini söyle.";
+      locked = false;
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft -= 1;
+        timerEl.textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function isCorrectAnswer(spokenText, answerObj) {
+      const normalized = normalizeText(spokenText);
+      const words = normalized.split(/\s+/).filter(Boolean);
+      return answerObj.aliases.some(alias =>
+        words.includes(normalizeText(alias))
+      );
+    }
+
+    function createRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) return null;
+
+      const sr = new SpeechRecognition();
+      sr.lang = "tr-TR";
+      sr.continuous = false;
+      sr.interimResults = true;
+      sr.maxAlternatives = 3;
+      return sr;
+    }
+
+    function handleCorrect(transcript) {
+      if (!gameActive || locked) return;
+      locked = true;
+
+      heardEl.textContent = "Duyulan: " + transcript;
+      statusEl.textContent = "Doğru!";
+      flash("correct");
+
+      score += 1;
+      scoreEl.textContent = score;
+
+      setTimeout(() => {
+        nextRound();
+        if (recognition && gameActive) {
+          try {
+            recognition.stop();
+          } catch (e) {}
+        }
+      }, 120);
+    }
+
+    function handleWrong(transcript) {
+      if (!gameActive || locked) return;
+      heardEl.textContent = "Duyulan: " + transcript;
+    }
+
+    function startRecognition() {
+      recognition = createRecognition();
+
+      if (!recognition) {
+        statusEl.textContent = "Bu tarayıcı ses tanımayı desteklemiyor. Chrome kullan.";
+        return false;
+      }
+
+      recognition.onresult = (event) => {
+        if (!gameActive || !currentAnswer || locked) return;
+
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript + " ";
+        }
+        transcript = transcript.trim();
+
+        if (!transcript) return;
+
+        if (isCorrectAnswer(transcript, currentAnswer)) {
+          handleCorrect(transcript);
+        } else {
+          handleWrong(transcript);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        if (!gameActive) return;
+        statusEl.textContent = "Mikrofon hatası: " + event.error;
+      };
+
+      recognition.onend = () => {
+        if (!gameActive) return;
+        try {
+          recognition.start();
+        } catch (e) {}
+      };
+
+      try {
+        recognition.start();
+        return true;
+      } catch (e) {
+        statusEl.textContent = "Mikrofon başlatılamadı.";
+        return false;
+      }
+    }
+
+    function startGame() {
+      if (recognition) {
+        recognition.onend = null;
+        try {
+          recognition.stop();
+        } catch (e) {}
+      }
+
+      clearInterval(timerInterval);
+      score = 0;
+      timeLeft = 30;
+      gameActive = true;
+      currentAnswer = null;
+      locked = false;
+
+      scoreEl.textContent = score;
+      timerEl.textContent = timeLeft;
+      startBtn.style.display = "none";
+      restartBtn.style.display = "inline-block";
+
+      const ok = startRecognition();
+      if (!ok) {
+        gameActive = false;
+        startBtn.style.display = "inline-block";
+        restartBtn.style.display = "none";
+        return;
+      }
+
+      startTimer();
+      nextRound();
+    }
+
+    function endGame() {
+      gameActive = false;
+      clearInterval(timerInterval);
+
+      if (recognition) {
+        recognition.onend = null;
+        try {
+          recognition.stop();
+        } catch (e) {}
+      }
+
+      boxEl.style.background = "#ffffff";
+      wordEl.textContent = "BİTTİ";
+      wordEl.style.color = "#111";
+      statusEl.textContent = "Süre doldu. Skorun: " + score;
+      heardEl.textContent = "";
+    }
+
+    startBtn.addEventListener("click", startGame);
+    restartBtn.addEventListener("click", startGame);
+  </script>
+</body>
+</html>
