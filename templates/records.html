@@ -21,6 +21,7 @@
         .toolbar a { text-decoration: none; padding: 11px 16px; border-radius: 999px; font-weight: 700; }
         .primary { background: linear-gradient(135deg, var(--accent) 0%, #0b5d57 100%); color: white; }
         .secondary { background: #ebe5db; color: var(--ink); }
+        .notice { margin: 0 0 14px; padding: 13px 15px; border-radius: 14px; background: #dff5f0; border: 1px solid #a7ddd3; color: #115e59; font-weight: 800; }
         .table-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 10px 30px rgba(52, 42, 26, 0.08); }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 14px 12px; text-align: left; border-bottom: 1px solid #eee7dc; vertical-align: top; }
@@ -47,9 +48,12 @@
 <body>
     <div class="shell">
         <div class="toolbar">
-            <div><h1>Kayitlar</h1><p>Islenen belgeleri buradan takip edebilirsin.</p></div>
+            <div><h1>Satış fişleri</h1><p>İşlenen fişleri buradan Excel olarak indirebilirsin.</p></div>
             <div class="toolbar-actions"><a class="secondary" href="/">Yeni belge</a><a class="primary" href="/export">Excel indir</a></div>
         </div>
+        {% if uploaded %}
+        <div class="notice">{{ uploaded }} fiş eklendi. Excel dosyasını indirmeye hazırsın.</div>
+        {% endif %}
         {% if records %}
         <div class="records-mobile">
             {% for record in records %}
