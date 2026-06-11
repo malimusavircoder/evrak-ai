@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Yakit Kayitlari</title>
+    <meta name="theme-color" content="#0f766e">
+    <link rel="manifest" href="/static/manifest.webmanifest">
+    <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+    <style>
+        :root { --surface: rgba(255,253,248,.96); --ink: #1f2937; --muted: #6b7280; --line: #ddd6ca; --accent: #0f766e; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: radial-gradient(circle at top right, rgba(15, 118, 110, 0.14), transparent 28%), linear-gradient(180deg, #f8f5ef 0%, #efe8dc 100%); color: var(--ink); font-family: "Segoe UI", Arial, sans-serif; }
+        .shell { max-width: 1240px; margin: 0 auto; padding: 20px 16px 32px; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+        .toolbar h1 { margin: 0; }
+        .toolbar p { margin: 6px 0 0; color: var(--muted); }
+        .toolbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .toolbar a { text-decoration: none; padding: 11px 16px; border-radius: 999px; font-weight: 700; }
+        .primary { background: linear-gradient(135deg, var(--accent) 0%, #0b5d57 100%); color: white; }
+        .secondary { background: #ebe5db; color: var(--ink); }
+        .table-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 10px 30px rgba(52, 42, 26, 0.08); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px 12px; text-align: left; border-bottom: 1px solid #eee7dc; vertical-align: top; }
+        th { background: #f6f1e8; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+        td small { color: var(--muted); }
+        .status { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #dff5f0; color: #115e59; font-size: 13px; font-weight: 700; }
+        .empty { padding: 28px; text-align: center; color: var(--muted); }
+        @media (max-width: 860px) { .table-wrap { overflow-x: auto; } table { min-width: 1100px; } }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <div class="toolbar">
+            <div><h1>Yakit Kayitlari</h1><p>Perakende yakit fislerini buradan takip edebilirsin.</p></div>
+            <div class="toolbar-actions"><a class="secondary" href="/fuel">Yeni fis</a><a class="primary" href="/fuel-export">Excel indir</a></div>
+        </div>
+        <div class="table-wrap">
+            {% if records %}
+            <table>
+                <thead><tr><th>Musteri</th><th>Istasyon</th><th>Tarih</th><th>Fis</th><th>Plaka</th><th>Tutarlar</th><th>Odeme</th><th>Durum</th><th>Dosya</th></tr></thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td><strong>{{ record.musteri }}</strong><br><small>{{ record.created_at.strftime("%Y-%m-%d %H:%M") }}</small></td>
+                        <td><strong>{{ record.istasyon_adi or "-" }}</strong><br><small>VKN: {{ record.vergi_no or "-" }}</small></td>
+                        <td>{{ record.tarih or "-" }}<br><small>{{ record.saat or "-" }}</small></td>
+                        <td><strong>{{ record.fis_no or "-" }}</strong><br><small>Litre: {{ "%.2f"|format(record.litre or 0) }}</small></td>
+                        <td>{{ record.plaka or "-" }}</td>
+                        <td>Birim: {{ "%.2f"|format(record.birim_fiyat or 0) }}<br>KDV: {{ "%.2f"|format(record.kdv_tutari or 0) }}<br>Toplam: {{ "%.2f"|format(record.toplam or 0) }}</td>
+                        <td>{{ record.odeme_tipi or "-" }}</td>
+                        <td><span class="status">{{ record.durum }}</span></td>
+                        <td>{% if record.dosya_adi %}<a href="{{ record.preview_url }}" target="_blank" rel="noopener">{{ record.dosya_adi }}</a>{% else %}-{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty">Henuz yakit fisi kaydi yok. Ilk fisi yuklemek icin <a href="/fuel">bu ekrani ac</a>.</div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

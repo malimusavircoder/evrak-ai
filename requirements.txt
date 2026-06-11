@@ -8,3 +8,5 @@ python-dotenv
 sqlalchemy
 requests
 psycopg[binary]
+Pillow
+pytesseract

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Yakit Fisi</title>
+    <meta name="theme-color" content="#0f766e">
+    <link rel="manifest" href="/static/manifest.webmanifest">
+    <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+    <style>
+        :root { --surface: rgba(255,253,248,.94); --ink: #1f2937; --muted: #6b7280; --line: #ded7cb; --accent: #0f766e; --warm: #b45309; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); background: radial-gradient(circle at top left, rgba(15, 118, 110, 0.14), transparent 32%), radial-gradient(circle at top right, rgba(180, 83, 9, 0.12), transparent 28%), linear-gradient(180deg, #faf6ef 0%, #efe6d7 100%); }
+        .shell { max-width: 980px; margin: 0 auto; padding: 18px 16px 32px; }
+        .nav { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+        .nav a { text-decoration: none; color: var(--accent); font-weight: 700; }
+        .grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 18px; }
+        .card { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 22px; box-shadow: 0 16px 40px rgba(52, 42, 26, 0.08); }
+        .eyebrow { margin: 0 0 10px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--warm); font-weight: 800; }
+        h1, h2 { margin: 0 0 14px; }
+        .lead { margin: 0 0 18px; color: var(--muted); line-height: 1.6; }
+        .pill-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 18px; }
+        .pill { padding: 9px 12px; border-radius: 999px; border: 1px solid #eadfce; background: rgba(255,255,255,.82); color: var(--accent); font-size: 13px; font-weight: 700; }
+        form { display: grid; gap: 14px; }
+        label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+        input, button { width: 100%; padding: 14px 15px; border-radius: 14px; border: 1px solid var(--line); font: inherit; }
+        input[type="file"] { display: none; }
+        button { cursor: pointer; border: none; background: linear-gradient(135deg, var(--accent) 0%, #0b5d57 100%); color: white; font-weight: 800; box-shadow: 0 10px 24px rgba(15, 118, 110, 0.22); }
+        .picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .picker { border: 1px solid var(--line); background: white; border-radius: 18px; padding: 16px; cursor: pointer; text-align: left; }
+        .picker strong { display: block; margin-bottom: 6px; }
+        .picker span { color: var(--muted); font-size: 14px; line-height: 1.5; }
+        .file-chip, .info-box { padding: 14px; border-radius: 16px; border: 1px dashed var(--line); background: rgba(255,255,255,.65); color: var(--muted); line-height: 1.6; }
+        .info-box strong { color: var(--ink); }
+        @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } .picker-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <div class="nav">
+            <a href="/">Genel Evrak</a>
+            <a href="/fuel-records">Yakit Kayitlari</a>
+        </div>
+        <div class="grid">
+            <section class="card">
+                <p class="eyebrow">Yakit Fisi Modu</p>
+                <h1>Perakende yakit fislerini daha hizli isle.</h1>
+                <p class="lead">Bu ekran tek tip fisler icin daha sade kuruldu. Fotograf yukle, OCR metni ciksin, alanlari kontrol edip kaydet.</p>
+                <div class="pill-row">
+                    <div class="pill">Tekli yukleme</div>
+                    <div class="pill">OCR tabanli okuma</div>
+                    <div class="pill">Manuel kontrol</div>
+                </div>
+                <form action="/fuel/upload" method="post" enctype="multipart/form-data">
+                    <div>
+                        <label for="musteri">Musteri</label>
+                        <input id="musteri" type="text" name="musteri" placeholder="Orn: Saha Araclari" required>
+                    </div>
+                    <div>
+                        <label>Fis secimi</label>
+                        <div class="picker-grid">
+                            <button class="picker" type="button" id="cameraPicker">
+                                <strong>Kamera ile cek</strong>
+                                <span>Yakit fisini aninda cekip yukle.</span>
+                            </button>
+                            <button class="picker" type="button" id="libraryPicker">
+                                <strong>Galeriden sec</strong>
+                                <span>Telefonundaki fis fotografini sec.</span>
+                            </button>
+                        </div>
+                    </div>
+                    <input id="cameraInput" type="file" name="file" accept="image/*" capture="environment">
+                    <input id="libraryInput" type="file" name="file" accept="image/*">
+                    <div id="selectedFile" class="file-chip">Henuz fis secilmedi.</div>
+                    <button type="submit">Fisi isle</button>
+                </form>
+            </section>
+            <aside class="card">
+                <h2>Neleri cikarir?</h2>
+                <div class="info-box">
+                    <strong>Alanlar</strong><br>
+                    Tarih, saat, fis no, istasyon, vergi no, litre, birim fiyat, KDV, toplam ve plaka.
+                </div>
+                <div class="info-box" style="margin-top:12px;">
+                    <strong>En iyi sonuc icin</strong><br>
+                    Fisi duz zemine koy, golgeyi azalt, kadraja sadece fisi al ve net cek.
+                </div>
+                <div class="info-box" style="margin-top:12px;">
+                    <strong>Not</strong><br>
+                    Bu mod sadece resim kabul eder. PDF ve genel evraklar icin ana akisi kullan.
+                </div>
+            </aside>
+        </div>
+    </div>
+    <script>
+        const cameraPicker = document.getElementById("cameraPicker");
+        const libraryPicker = document.getElementById("libraryPicker");
+        const cameraInput = document.getElementById("cameraInput");
+        const libraryInput = document.getElementById("libraryInput");
+        const selectedFile = document.getElementById("selectedFile");
+        const syncSelection = (source, other) => {
+            other.value = "";
+            const file = source.files && source.files[0];
+            selectedFile.textContent = file ? file.name : "Henuz fis secilmedi.";
+        };
+        cameraPicker.addEventListener("click", () => cameraInput.click());
+        libraryPicker.addEventListener("click", () => libraryInput.click());
+        cameraInput.addEventListener("change", () => syncSelection(cameraInput, libraryInput));
+        libraryInput.addEventListener("change", () => syncSelection(libraryInput, cameraInput));
+    </script>
+</body>
+</html>
