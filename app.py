@@ -1,6 +1,4 @@
 import os
-import json
-import base64
 import shutil
 import re
 from datetime import datetime
@@ -46,22 +44,10 @@ EXPORT_DIR.mkdir(exist_ok=True)
 DATA_DIR.mkdir(exist_ok=True)
 STATIC_DIR.mkdir(exist_ok=True)
 
-CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "")
-CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-opus-4-6")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
 SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY", "")
 SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "evrak-files")
-MODEL_ALIASES = {
-    "claude-opus-4.6": "claude-opus-4-6",
-}
-
-
-def normalize_model_name(value: str) -> str:
-    model_name = (value or "").strip()
-    if "=" in model_name:
-        model_name = model_name.split("=")[-1].strip()
-    return MODEL_ALIASES.get(model_name, model_name or "claude-opus-4-6")
 
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATA_DIR / 'app.db'}")
 if DATABASE_URL.startswith("postgres://"):
@@ -171,11 +157,6 @@ def safe_float(value) -> float:
         return float(text)
     except Exception:
         return 0.0
-
-
-def file_to_base64(filepath: Path) -> str:
-    with open(filepath, "rb") as f:
-        return base64.b64encode(f.read()).decode("utf-8")
 
 
 def get_mime_type(filename: str) -> str:
@@ -661,117 +642,36 @@ def extract_fuel_receipt(filepath: Path) -> dict:
     return extract_fuel_receipt_fields(text)
 
 
-def build_claude_content(filepath: Path, prompt: str) -> list[dict]:
-    mime_type = get_mime_type(filepath.name)
-    b64 = file_to_base64(filepath)
-
-    if mime_type == "application/pdf":
-        file_block = {
-            "type": "document",
-            "source": {
-                "type": "base64",
-                "media_type": mime_type,
-                "data": b64,
-            },
-        }
-    else:
-        file_block = {
-            "type": "image",
-            "source": {
-                "type": "base64",
-                "media_type": mime_type,
-                "data": b64,
-            },
-        }
-
-    return [
-        file_block,
-        {
-            "type": "text",
-            "text": prompt,
-        },
-    ]
+def infer_kdv_rate(matrah: float, kdv_tutari: float, toplam: float) -> float:
+    if matrah and kdv_tutari:
+        return round((kdv_tutari / matrah) * 100, 2)
+    if toplam and kdv_tutari and toplam > kdv_tutari:
+        return round((kdv_tutari / (toplam - kdv_tutari)) * 100, 2)
+    return 0.0
 
 
-def extract_with_claude(filepath: Path) -> dict:
-    if not CLAUDE_API_KEY:
-        raise HTTPException(status_code=500, detail="CLAUDE_API_KEY tanımlı değil.")
-    model_name = normalize_model_name(CLAUDE_MODEL)
+def extract_receipt_without_api(filepath: Path) -> dict:
+    text = extract_text_with_ocr(filepath)
+    if not text.strip():
+        raise HTTPException(status_code=422, detail="Fişten okunabilir metin çıkarılamadı.")
 
-    prompt = """
-Sen Türkiye'de çalışan deneyimli bir mali müşavir yardımcısısın.
-Kullanıcının yüklediği belge bir perakende satış fişi fotoğrafıdır.
-Fişteki alanları analiz et ve sadece aşağıdaki JSON yapısında cevap ver:
-{
-  "belge_tipi": "",
-  "firma": "",
-  "vergi_no": "",
-  "tarih": "",
-  "belge_no": "",
-  "matrah": "",
-  "kdv_orani": "",
-  "kdv_tutari": "",
-  "toplam": "",
-  "aciklama": ""
-}
-Kurallar:
-- Çıktıyı sadece JSON olarak ver
-- Tarih formatı YYYY-MM-DD olsun
-- Emin olmadığın alanları boş bırak
-- Türkiye perakende satış fişlerine göre yorumla
-- Belge tipi çoğunlukla "fiş" olsun
-- Sayısal alanlarda sadece sayı döndür
-"""
-    payload = {
-        "model": model_name,
-        "max_tokens": 1024,
-        "messages": [
-            {
-                "role": "user",
-                "content": build_claude_content(filepath, prompt),
-            }
-        ],
-    }
-    headers = {
-        "x-api-key": CLAUDE_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-    }
-    response = requests.post(
-        "https://api.anthropic.com/v1/messages",
-        headers=headers,
-        json=payload,
-        timeout=120,
-    )
-    try:
-        response.raise_for_status()
-    except requests.HTTPError as exc:
-        detail = response.text[:500] if response.text else "AI isteği başarısız oldu."
-        raise HTTPException(status_code=502, detail=detail) from exc
+    fields = extract_fuel_receipt_fields(text)
+    toplam = safe_float(fields.get("toplam", ""))
+    kdv_tutari = safe_float(fields.get("kdv_tutari", ""))
+    kdv_orani = infer_kdv_rate(0.0, kdv_tutari, toplam)
+    matrah = round(toplam - kdv_tutari, 2) if toplam and kdv_tutari else toplam
 
-    data = response.json()
-    text_output = ""
-    for content in data.get("content", []):
-        if content.get("type") == "text":
-            text_output += content.get("text", "")
-    if not text_output.strip():
-        raise HTTPException(status_code=500, detail="AI cevabı alınamadı.")
-    try:
-        parsed = json.loads(text_output)
-    except json.JSONDecodeError:
-        cleaned = text_output.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-        parsed = json.loads(cleaned)
     return {
-        "belge_tipi": parsed.get("belge_tipi", ""),
-        "firma": parsed.get("firma", ""),
-        "vergi_no": parsed.get("vergi_no", ""),
-        "tarih": parsed.get("tarih", ""),
-        "belge_no": parsed.get("belge_no", ""),
-        "matrah": parsed.get("matrah", ""),
-        "kdv_orani": parsed.get("kdv_orani", ""),
-        "kdv_tutari": parsed.get("kdv_tutari", ""),
-        "toplam": parsed.get("toplam", ""),
-        "aciklama": parsed.get("aciklama", ""),
+        "belge_tipi": "fiş",
+        "firma": fields.get("istasyon_adi", ""),
+        "vergi_no": fields.get("vergi_no", ""),
+        "tarih": fields.get("tarih", ""),
+        "belge_no": fields.get("fis_no", ""),
+        "matrah": f"{matrah:.2f}" if matrah else "",
+        "kdv_orani": f"{kdv_orani:g}" if kdv_orani else "",
+        "kdv_tutari": f"{kdv_tutari:.2f}" if kdv_tutari else "",
+        "toplam": f"{toplam:.2f}" if toplam else "",
+        "aciklama": fields.get("istasyon_adi", "") or "OCR ile okundu",
     }
 
 
@@ -818,21 +718,21 @@ async def upload_document(
 
         try:
             public_file_url = upload_to_supabase_storage(file_path, safe_name, mime_type)
-            ai_result = extract_with_claude(file_path)
+            ocr_result = extract_receipt_without_api(file_path)
             db = SessionLocal()
             try:
                 record = Record(
                     musteri=musteri,
-                    belge_tipi=ai_result.get("belge_tipi", "") or "fiş",
-                    firma=ai_result.get("firma", ""),
-                    vergi_no=ai_result.get("vergi_no", ""),
-                    tarih=ai_result.get("tarih", ""),
-                    belge_no=ai_result.get("belge_no", ""),
-                    matrah=safe_float(ai_result.get("matrah", "")),
-                    kdv_orani=ai_result.get("kdv_orani", ""),
-                    kdv_tutari=safe_float(ai_result.get("kdv_tutari", "")),
-                    toplam=safe_float(ai_result.get("toplam", "")),
-                    aciklama=ai_result.get("aciklama", ""),
+                    belge_tipi=ocr_result.get("belge_tipi", "") or "fiş",
+                    firma=ocr_result.get("firma", ""),
+                    vergi_no=ocr_result.get("vergi_no", ""),
+                    tarih=ocr_result.get("tarih", ""),
+                    belge_no=ocr_result.get("belge_no", ""),
+                    matrah=safe_float(ocr_result.get("matrah", "")),
+                    kdv_orani=ocr_result.get("kdv_orani", ""),
+                    kdv_tutari=safe_float(ocr_result.get("kdv_tutari", "")),
+                    toplam=safe_float(ocr_result.get("toplam", "")),
+                    aciklama=ocr_result.get("aciklama", ""),
                     dosya_adi=safe_name,
                     dosya_yolu=public_file_url,
                     durum="Onaylandı",

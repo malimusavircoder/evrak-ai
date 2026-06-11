@@ -1,6 +1,6 @@
 # Evrak AI
 
-FastAPI tabanli belge yukleme ve AI ile alan cikarma uygulamasi.
+FastAPI tabanli fis fotografi yukleme ve OCR ile alan cikarma uygulamasi.
 
 ## Yerel calistirma
 
@@ -25,8 +25,6 @@ uvicorn app:app --reload
 `.env` dosyasi:
 
 ```env
-CLAUDE_API_KEY=your_anthropic_key
-CLAUDE_MODEL=claude-opus-4-6
 DATABASE_URL=sqlite:///data/app.db
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
@@ -45,10 +43,9 @@ Not:
 1. Kodu GitHub'a gonder.
 2. Render'da `New +` -> `Blueprint` sec.
 3. Repo'yu bagla.
-4. `CLAUDE_API_KEY` ortam degiskenini Render uzerinden ekle.
-5. Kalici kullanim icin `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SECRET_KEY` ortam degiskenlerini de ekle.
-6. `SUPABASE_BUCKET=evrak-files` olarak ayarla.
-7. Deploy tamamlaninca gelen URL'i telefondan ac.
+4. Kalici kullanim icin `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SECRET_KEY` ortam degiskenlerini ekle.
+5. `SUPABASE_BUCKET=evrak-files` olarak ayarla.
+6. Deploy tamamlaninca gelen URL'i telefondan ac.
 
 Render servis tanimi [render.yaml](/Users/murattufan/Desktop/evrak-ai/render.yaml) icinde hazir.
 
@@ -62,8 +59,6 @@ Bu proje Railway uzerinde Nixpacks ile calisir. `railway.json` uygulamanin basla
 4. `Variables` ekranindan en az su degiskenleri ekle:
 
 ```env
-CLAUDE_API_KEY=your_anthropic_key
-CLAUDE_MODEL=claude-opus-4-6
 DATABASE_URL=postgresql+psycopg://...
 SUPABASE_URL=
 SUPABASE_ANON_KEY=

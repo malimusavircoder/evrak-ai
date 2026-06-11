@@ -7,10 +7,6 @@ services:
     startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
-      - key: CLAUDE_API_KEY
-        sync: false
-      - key: CLAUDE_MODEL
-        value: claude-opus-4-6
       - key: DATABASE_URL
         sync: false
       - key: SUPABASE_URL
